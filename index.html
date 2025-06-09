@@ -3,292 +3,468 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Эффектный калькулятор с огнем</title>
+<title>Выбор ПК или Мобильной версии калькулятора</title>
 <style>
   body {
     margin: 0;
-    height: 100vh;
-    overflow: hidden;
-    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    cursor: none; /* скрываем курсор для эффекта огня */
-    position: relative;
-  }
-
-  /* Анимация градиента фона */
-  @keyframes gradientShift {
-    0% {background-position: 0% 50%;}
-    50% {background-position: 100% 50%;}
-    100% {background-position: 0% 50%;}
-  }
-  body {
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-    background-size: 600% 600%;
-    animation: gradientShift 20s ease infinite;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
   }
 
-  /* Контейнер для падающих символов */
-  #fire-particles {
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* Центрированный калькулятор */
-  .calculator {
-    position: relative;
-    z-index: 1;
+  #choice-container {
+    background: rgba(255,255,255,0.1);
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 40px 30px;
-    margin: auto;
-    background: rgba(255,255,255,0.1);
-    border-radius: 30px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-    backdrop-filter: blur(20px);
-    max-width: 440px;
-    width: 90%;
-    animation: fadeIn 1s ease-out;
   }
 
-  @keyframes fadeIn {
-    from {opacity: 0; transform: translateY(-20px);}
-    to {opacity: 1; transform: translateY(0);}
-  }
-
-  /* Экран */
-  .display {
-    background: linear-gradient(135deg, #f093fb, #f5576c);
-    padding: 20px;
-    border-radius: 20px;
-    font-size: 2.6em;
-    color: #fff;
-    text-align: right;
-    box-shadow: inset 0 4px 15px rgba(0,0,0,0.2);
-    margin-bottom: 30px;
-    width: 100%;
-    font-family: 'Orbitron', sans-serif;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    overflow-wrap: break-word;
-  }
-
-  /* Кнопки */
-  .buttons {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 15px;
-    width: 100%;
-  }
-
-  .button {
-    padding: 20px;
-    font-size: 1.4em;
-    border-radius: 20px;
+  button {
+    margin: 15px;
+    padding: 15px 30px;
+    font-size: 1.2em;
     border: none;
+    border-radius: 15px;
     cursor: pointer;
     background: linear-gradient(135deg, #667eea, #764ba2);
     color: #fff;
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-    transition: all 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    font-family: 'Arial Rounded MT Bold', sans-serif;
+    transition: all 0.2s ease;
   }
 
-  /* Эффект при нажатии */
-  .button:active {
-    transform: scale(0.95);
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  button:hover {
+    transform: scale(1.05);
   }
 
-  /* Специальная кнопка 0 */
-  .span-two {
-    grid-column: span 2;
+  /* Основной контейнер для калькулятора, скрыт по умолчанию */
+  #main-container {
+    display: none;
+    width: 100%;
+    height: 100%;
   }
 </style>
 </head>
 <body>
 
-<!-- Контейнер для падающих символов огня -->
-<div id="fire-particles"></div>
-
-<!-- Центрированный калькулятор -->
-<div class="calculator">
-  <div class="display" id="display">0</div>
-  <div class="buttons">
-    <button class="button" data-action="clear">C</button>
-    <button class="button" data-action="delete">DEL</button>
-    <button class="button" data-action="divide">/</button>
-    <button class="button" data-action="multiply">*</button>
-
-    <button class="button" data-number="7">7</button>
-    <button class="button" data-number="8">8</button>
-    <button class="button" data-number="9">9</button>
-    <button class="button" data-action="subtract">-</button>
-
-    <button class="button" data-number="4">4</button>
-    <button class="button" data-number="5">5</button>
-    <button class="button" data-number="6">6</button>
-    <button class="button" data-action="add">+</button>
-
-    <button class="button" data-number="1">1</button>
-    <button class="button" data-number="2">2</button>
-    <button class="button" data-number="3">3</button>
-    <button class="button" data-action="equals">=</button>
-
-    <button class="button span-two" data-number="0">0</button>
-    <button class="button" data-number=".">.</button>
-  </div>
+<div id="choice-container">
+  <h2 style="color:#fff;">Выберите версию калькулятора</h2>
+  <button id="pcBtn">ПК версия</button>
+  <button id="mobileBtn">Мобильная версия</button>
 </div>
 
+<!-- Контейнер для калькулятора (скроется и покажется по выбору) -->
+<div id="main-container"></div>
+
 <script>
-  const display = document.getElementById('display');
-  const buttons = document.querySelectorAll('.button');
-  const particlesContainer = document.getElementById('fire-particles');
+  const pcBtn = document.getElementById('pcBtn');
+  const mobileBtn = document.getElementById('mobileBtn');
+  const choiceContainer = document.getElementById('choice-container');
+  const mainContainer = document.getElementById('main-container');
 
-  let currentInput = '';
-  let lastOperation = null;
-  let resetNext = false;
-
-  // Обновление дисплея
-  function updateDisplay() {
-    display.textContent = currentInput || '0';
-  }
-
-  // Обработка кликов по кнопкам
-  buttons.forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      const action = e.target.dataset.action;
-      const number = e.target.dataset.number;
-
-      createFireAtCursor(e);
-
-      if (number !== undefined) {
-        if (resetNext) {
-          currentInput = '';
-          resetNext = false;
-        }
-        if (number === '.' && currentInput.includes('.')) return;
-        currentInput += number;
-        updateDisplay();
-      } else if (action) {
-        handleAction(action);
+  // Версия для ПК
+  const pcCode = `
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        cursor: none;
+        position: relative;
       }
-    });
-  });
-
-  function handleAction(action) {
-    if (action === 'clear') {
-      currentInput = '';
-      lastOperation = null;
-      updateDisplay();
-    } else if (action === 'delete') {
-      currentInput = currentInput.slice(0, -1);
-      updateDisplay();
-    } else if (['add', 'subtract', 'multiply', 'divide'].includes(action)) {
-      if (currentInput === '' && display.textContent !== '0') {
-        currentInput = display.textContent;
+      @keyframes gradientShift {
+        0% {background-position: 0% 50%;}
+        50% {background-position: 100% 50%;}
+        100% {background-position: 0% 50%;}
       }
-      performOperation(action);
-    } else if (action === 'equals') {
-      performOperation(lastOperation, true);
+      body {
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        background-size: 600% 600%;
+        animation: gradientShift 20s ease infinite;
+      }
+      #fire-particles {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .calculator {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px 30px;
+        margin: auto;
+        background: rgba(255,255,255,0.1);
+        border-radius: 30px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+        backdrop-filter: blur(20px);
+        max-width: 440px;
+        width: 90%;
+        animation: fadeIn 1s ease-out;
+      }
+      @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(-20px);}
+        to {opacity: 1; transform: translateY(0);}
+      }
+      .display {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        padding: 20px;
+        border-radius: 20px;
+        font-size: 2.6em;
+        color: #fff;
+        text-align: right;
+        box-shadow: inset 0 4px 15px rgba(0,0,0,0.2);
+        margin-bottom: 30px;
+        width: 100%;
+        font-family: 'Orbitron', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        overflow-wrap: break-word;
+      }
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        width: 100%;
+      }
+      .button {
+        padding: 20px;
+        font-size: 1.4em;
+        border-radius: 20px;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        transition: all 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        font-family: 'Arial Rounded MT Bold', sans-serif;
+      }
+      .button:active {
+        transform: scale(0.95);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      }
+      .span-two {
+        grid-column: span 2;
+      }
+    </style>
+    <div id="fire-particles"></div>
+    <div class="calculator" id="calculator">
+      <div class="display" id="display">0</div>
+      <div class="buttons">
+        <button class="button" data-action="clear">C</button>
+        <button class="button" data-action="delete">DEL</button>
+        <button class="button" data-action="divide">/</button>
+        <button class="button" data-action="multiply">*</button>
+        <button class="button" data-number="7">7</button>
+        <button class="button" data-number="8">8</button>
+        <button class="button" data-number="9">9</button>
+        <button class="button" data-action="subtract">-</button>
+        <button class="button" data-number="4">4</button>
+        <button class="button" data-number="5">5</button>
+        <button class="button" data-number="6">6</button>
+        <button class="button" data-action="add">+</button>
+        <button class="button" data-number="1">1</button>
+        <button class="button" data-number="2">2</button>
+        <button class="button" data-number="3">3</button>
+        <button class="button" data-action="equals">=</button>
+        <button class="button span-two" data-number="0">0</button>
+        <button class="button" data-number=".">.</button>
+      </div>
+    </div>
+  `;
+
+  // Версия для мобильных
+  const mobileCode = `
+    <style>
+      body {
+        margin: 0;
+        height: 100vh;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        cursor: none;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+      }
+      #fire-particles {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        pointer-events: none;
+        z-index: 0;
+      }
+      .calculator {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 20px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        backdrop-filter: blur(20px);
+        max-width: 380px;
+        width: 100%;
+        animation: fadeIn 1s ease-out;
+      }
+      @keyframes fadeIn {
+        from {opacity: 0; transform: translateY(-20px);}
+        to {opacity: 1; transform: translateY(0);}
+      }
+      .display {
+        background: linear-gradient(135deg, #f093fb, #f5576c);
+        padding: 15px;
+        border-radius: 15px;
+        font-size: 2em;
+        color: #fff;
+        text-align: right;
+        box-shadow: inset 0 4px 15px rgba(0,0,0,0.2);
+        margin-bottom: 20px;
+        width: 100%;
+        font-family: 'Orbitron', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        overflow-wrap: break-word;
+      }
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+        width: 100%;
+      }
+      .button {
+        padding: 15px;
+        font-size: 1.3em;
+        border-radius: 15px;
+        border: none;
+        cursor: pointer;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        transition: all 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+        font-family: 'Arial Rounded MT Bold', sans-serif;
+      }
+      .button:active {
+        transform: scale(0.95);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      }
+      .span-two {
+        grid-column: span 2;
+      }
+    </style>
+    <div id="fire-particles"></div>
+    <div class="calculator" id="calculator">
+      <div class="display" id="display">0</div>
+      <div class="buttons">
+        <button class="button" data-action="clear">C</button>
+        <button class="button" data-action="delete">DEL</button>
+        <button class="button" data-action="divide">/</button>
+        <button class="button" data-action="multiply">*</button>
+        <button class="button" data-number="7">7</button>
+        <button class="button" data-number="8">8</button>
+        <button class="button" data-number="9">9</button>
+        <button class="button" data-action="subtract">-</button>
+        <button class="button" data-number="4">4</button>
+        <button class="button" data-number="5">5</button>
+        <button class="button" data-number="6">6</button>
+        <button class="button" data-action="add">+</button>
+        <button class="button" data-number="1">1</button>
+        <button class="button" data-number="2">2</button>
+        <button class="button" data-number="3">3</button>
+        <button class="button" data-action="equals">=</button>
+        <button class="button span-two" data-number="0">0</button>
+        <button class="button" data-number=".">.</button>
+      </div>
+    </div>
+  `;
+
+  // Обработчики выбора
+  document.getElementById('pcBtn').onclick = () => {
+    choiceContainer.style.display = 'none';
+    mainContainer.innerHTML = pcCode;
+    mainContainer.style.display = 'block';
+    initCalculator('pc');
+  };
+
+  document.getElementById('mobileBtn').onclick = () => {
+    choiceContainer.style.display = 'none';
+    mainContainer.innerHTML = mobileCode;
+    mainContainer.style.display = 'block';
+    initCalculator('mobile');
+  };
+
+  // Инициализация калькулятора
+  function initCalculator(type) {
+    const container = document.getElementById('calculator');
+    const display = document.getElementById('display');
+    const buttons = container.querySelectorAll('.button');
+    const particlesContainer = document.getElementById('fire-particles');
+
+    let currentInput = '';
+    let lastOperation = null;
+    let resetNext = false;
+
+    // Обновление дисплея
+    function updateDisplay() {
+      display.textContent = currentInput || '0';
     }
-  }
 
-  function performOperation(operation, isEqual = false) {
-    if (currentInput === '') return;
+    // Обработка кликов
+    buttons.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const action = e.target.dataset.action;
+        const number = e.target.dataset.number;
+        createFireAtCursor(e);
 
-    if (lastOperation) {
-      const prev = parseFloat(display.textContent);
-      const current = parseFloat(currentInput);
-      let result = 0;
-      switch (lastOperation) {
-        case 'add': result = prev + current; break;
-        case 'subtract': result = prev - current; break;
-        case 'multiply': result = prev * current; break;
-        case 'divide':
-          if (current === 0) {
-            alert('Ошибка: деление на ноль!');
-            return;
+        if (number !== undefined) {
+          if (resetNext) {
+            currentInput = '';
+            resetNext = false;
           }
-          result = prev / current;
-          break;
-      }
-      currentInput = result.toString();
-      display.textContent = currentInput;
-    } else {
-      display.textContent = currentInput;
-    }
-    if (isEqual) {
-      lastOperation = null;
-    } else {
-      lastOperation = operation;
-    }
-    resetNext = true;
-  }
-
-  // Создавать эффект огня (частицы) при движении курсора
-  function createFireAtCursor(e) {
-    const x = e.clientX;
-    const y = e.clientY;
-    for (let i = 0; i < 2; i++) {
-      createFireParticle(x, y);
-    }
-  }
-
-  function createFireParticle(x, y) {
-    const size = Math.random() * 8 + 4;
-    const hue = Math.random() * 40 + 20;
-    const glow = Math.random() * 20 + 10;
-
-    const particle = document.createElement('div');
-    particle.style.position = 'absolute';
-    particle.style.background = `hsl(${hue}, 100%, 60%)`;
-    particle.style.width = size + 'px';
-    particle.style.height = size + 'px';
-    particle.style.borderRadius = '50%';
-    particle.style.boxShadow = `0 0 ${glow}px ${glow/2}px ${`hsl(${hue}, 100%, 60%)`}`;
-    particle.style.left = x + 'px';
-    particle.style.top = y + 'px';
-    particle.style.opacity = '1';
-
-    particlesContainer.appendChild(particle);
-
-    const dx = (Math.random() - 0.5) * 50;
-    const dy = Math.random() * -50 - 20;
-    const duration = Math.random() * 600 + 400;
-    const rotateDeg = Math.random() * 720;
-
-    requestAnimationFrame(() => {
-      particle.animate([
-        {
-          transform: `translate(0, 0) rotate(0deg)`,
-          opacity: 1
-        },
-        {
-          transform: `translate(${dx}px, ${dy}px) rotate(${rotateDeg}deg)`,
-          opacity: 0
+          if (number === '.' && currentInput.includes('.')) return;
+          currentInput += number;
+          updateDisplay();
+        } else if (action) {
+          handleAction(action);
         }
-      ], {
-        duration: duration,
-        easing: 'ease-out'
-      }).onfinish = () => {
-        particle.remove();
-      };
+      });
     });
-  }
 
-  // Обработчик движения мыши для огня
-  document.addEventListener('mousemove', (e) => {
-    for (let i = 0; i < 2; i++) {
-      createFireParticle(e.clientX, e.clientY);
+    function handleAction(action) {
+      if (action === 'clear') {
+        currentInput = '';
+        lastOperation = null;
+        updateDisplay();
+      } else if (action === 'delete') {
+        currentInput = currentInput.slice(0, -1);
+        updateDisplay();
+      } else if (['add', 'subtract', 'multiply', 'divide'].includes(action)) {
+        if (currentInput === '' && display.textContent !== '0') {
+          currentInput = display.textContent;
+        }
+        performOperation(action);
+      } else if (action === 'equals') {
+        performOperation(lastOperation, true);
+      }
     }
-  });
 
-  // Изначально обновляем дисплей
-  updateDisplay();
+    function performOperation(operation, isEqual = false) {
+      if (currentInput === '') return;
+      if (lastOperation) {
+        const prev = parseFloat(display.textContent);
+        const current = parseFloat(currentInput);
+        let result = 0;
+        switch (lastOperation) {
+          case 'add': result = prev + current; break;
+          case 'subtract': result = prev - current; break;
+          case 'multiply': result = prev * current; break;
+          case 'divide':
+            if (current === 0) {
+              alert('Ошибка: деление на ноль!');
+              return;
+            }
+            result = prev / current;
+            break;
+        }
+        currentInput = result.toString();
+        display.textContent = currentInput;
+      } else {
+        display.textContent = currentInput;
+      }
+      if (isEqual) {
+        lastOperation = null;
+      } else {
+        lastOperation = operation;
+      }
+      resetNext = true;
+    }
+
+    // Создать эффект огня
+    function createFireAtCursor(e) {
+      const x = e.clientX;
+      const y = e.clientY;
+      for (let i = 0; i < 2; i++) {
+        createFireParticle(x, y);
+      }
+    }
+
+    function createFireParticle(x, y) {
+      const size = Math.random() * 8 + 4;
+      const hue = Math.random() * 40 + 20;
+      const glow = Math.random() * 20 + 10;
+
+      const particle = document.createElement('div');
+      particle.style.position = 'absolute';
+      particle.style.background = `hsl(${hue}, 100%, 60%)`;
+      particle.style.width = size + 'px';
+      particle.style.height = size + 'px';
+      particle.style.borderRadius = '50%';
+      particle.style.boxShadow = `0 0 ${glow}px ${glow/2}px ${`hsl(${hue}, 100%, 60%)`}`;
+      particle.style.left = x + 'px';
+      particle.style.top = y + 'px';
+      particle.style.opacity = '1';
+
+      particlesContainer.appendChild(particle);
+
+      const dx = (Math.random() - 0.5) * 50;
+      const dy = Math.random() * -50 - 20;
+      const duration = Math.random() * 600 + 400;
+      const rotateDeg = Math.random() * 720;
+
+      requestAnimationFrame(() => {
+        particle.animate([
+          {
+            transform: `translate(0, 0) rotate(0deg)`,
+            opacity: 1
+          },
+          {
+            transform: `translate(${dx}px, ${dy}px) rotate(${rotateDeg}deg)`,
+            opacity: 0
+          }
+        ], {
+          duration: duration,
+          easing: 'ease-out'
+        }).onfinish = () => {
+          particle.remove();
+        };
+      });
+    }
+
+    // Обработчик движения мыши или пальца
+    document.addEventListener('mousemove', (e) => {
+      if (type === 'pc') {
+        for (let i = 0; i < 2; i++) {
+          createFireParticle(e.clientX, e.clientY);
+        }
+      }
+    });
+    // Для мобильных — использовать touchmove
+    if (type === 'mobile') {
+      document.addEventListener('touchmove', (e) => {
+        if (e.touches.length > 0) {
+          const touch = e.touches[0];
+          for (let i = 0; i < 2; i++) {
+            createFireParticle(touch.clientX, touch.clientY);
+          }
+        }
+      });
+    }
+
+    updateDisplay();
+  }
 </script>
 </body>
 </html>
