@@ -48,6 +48,81 @@
     width: 100%;
     height: 100%;
   }
+
+  /* Общие стили для калькуляторов */
+  .calculator {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 30px;
+    margin: auto;
+    background: rgba(255,255,255,0.1);
+    border-radius: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    backdrop-filter: blur(20px);
+    max-width: 440px;
+    width: 90%;
+    animation: fadeIn 1s ease-out;
+  }
+
+  /* Мобильная версия - уменьшение размера */
+  #calculator.mobile {
+    max-width: 320px;
+    padding: 20px 15px;
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(-20px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+
+  .display {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    padding: 20px;
+    border-radius: 20px;
+    font-size: 2.6em;
+    color: #fff;
+    text-align: right;
+    box-shadow: inset 0 4px 15px rgba(0,0,0,0.2);
+    margin-bottom: 30px;
+    width: 100%;
+    font-family: 'Orbitron', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow-wrap: break-word;
+  }
+
+  /* Кнопки */
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    width: 100%;
+  }
+
+  .button {
+    padding: 20px;
+    font-size: 1.4em;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    transition: all 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    font-family: 'Arial Rounded MT Bold', sans-serif;
+  }
+
+  .button:active {
+    transform: scale(0.95);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+
+  .span-two {
+    grid-column: span 2;
+  }
 </style>
 </head>
 <body>
@@ -58,7 +133,6 @@
   <button id="mobileBtn">Мобильная версия</button>
 </div>
 
-<!-- Контейнер для калькулятора (скроется и покажется по выбору) -->
 <div id="main-container"></div>
 
 <script>
@@ -69,94 +143,6 @@
 
   // Версия для ПК
   const pcCode = `
-    <style>
-      body {
-        margin: 0;
-        height: 100vh;
-        overflow: hidden;
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        cursor: none;
-        position: relative;
-      }
-      @keyframes gradientShift {
-        0% {background-position: 0% 50%;}
-        50% {background-position: 100% 50%;}
-        100% {background-position: 0% 50%;}
-      }
-      body {
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        background-size: 600% 600%;
-        animation: gradientShift 20s ease infinite;
-      }
-      #fire-particles {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        pointer-events: none;
-        z-index: 0;
-      }
-      .calculator {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 40px 30px;
-        margin: auto;
-        background: rgba(255,255,255,0.1);
-        border-radius: 30px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-        backdrop-filter: blur(20px);
-        max-width: 440px;
-        width: 90%;
-        animation: fadeIn 1s ease-out;
-      }
-      @keyframes fadeIn {
-        from {opacity: 0; transform: translateY(-20px);}
-        to {opacity: 1; transform: translateY(0);}
-      }
-      .display {
-        background: linear-gradient(135deg, #f093fb, #f5576c);
-        padding: 20px;
-        border-radius: 20px;
-        font-size: 2.6em;
-        color: #fff;
-        text-align: right;
-        box-shadow: inset 0 4px 15px rgba(0,0,0,0.2);
-        margin-bottom: 30px;
-        width: 100%;
-        font-family: 'Orbitron', sans-serif;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        overflow-wrap: break-word;
-      }
-      .buttons {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
-        width: 100%;
-      }
-      .button {
-        padding: 20px;
-        font-size: 1.4em;
-        border-radius: 20px;
-        border: none;
-        cursor: pointer;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: #fff;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        transition: all 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-        font-family: 'Arial Rounded MT Bold', sans-serif;
-      }
-      .button:active {
-        transform: scale(0.95);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      }
-      .span-two {
-        grid-column: span 2;
-      }
-    </style>
     <div id="fire-particles"></div>
     <div class="calculator" id="calculator">
       <div class="display" id="display">0</div>
@@ -183,88 +169,8 @@
     </div>
   `;
 
-  // Версия для мобильных
+  // Вариант для мобильных — уменьшенный
   const mobileCode = `
-    <style>
-      body {
-        margin: 0;
-        height: 100vh;
-        overflow: hidden;
-        background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        cursor: none;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        padding: 20px;
-      }
-      #fire-particles {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        pointer-events: none;
-        z-index: 0;
-      }
-      .calculator {
-        position: relative;
-        z-index: 1;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 20px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 20px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.4);
-        backdrop-filter: blur(20px);
-        max-width: 380px;
-        width: 100%;
-        animation: fadeIn 1s ease-out;
-      }
-      @keyframes fadeIn {
-        from {opacity: 0; transform: translateY(-20px);}
-        to {opacity: 1; transform: translateY(0);}
-      }
-      .display {
-        background: linear-gradient(135deg, #f093fb, #f5576c);
-        padding: 15px;
-        border-radius: 15px;
-        font-size: 2em;
-        color: #fff;
-        text-align: right;
-        box-shadow: inset 0 4px 15px rgba(0,0,0,0.2);
-        margin-bottom: 20px;
-        width: 100%;
-        font-family: 'Orbitron', sans-serif;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        overflow-wrap: break-word;
-      }
-      .buttons {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 10px;
-        width: 100%;
-      }
-      .button {
-        padding: 15px;
-        font-size: 1.3em;
-        border-radius: 15px;
-        border: none;
-        cursor: pointer;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: #fff;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-        transition: all 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-        font-family: 'Arial Rounded MT Bold', sans-serif;
-      }
-      .button:active {
-        transform: scale(0.95);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-      }
-      .span-two {
-        grid-column: span 2;
-      }
-    </style>
     <div id="fire-particles"></div>
     <div class="calculator" id="calculator">
       <div class="display" id="display">0</div>
@@ -291,7 +197,7 @@
     </div>
   `;
 
-  // Обработчики выбора
+  // Обработчик выбора
   document.getElementById('pcBtn').onclick = () => {
     choiceContainer.style.display = 'none';
     mainContainer.innerHTML = pcCode;
@@ -312,6 +218,13 @@
     const display = document.getElementById('display');
     const buttons = container.querySelectorAll('.button');
     const particlesContainer = document.getElementById('fire-particles');
+
+    // Уменьшаем размер для мобильной версии
+    if (type === 'mobile') {
+      container.classList.add('mobile');
+    } else {
+      container.classList.remove('mobile');
+    }
 
     let currentInput = '';
     let lastOperation = null;
@@ -451,7 +364,6 @@
         }
       }
     });
-    // Для мобильных — использовать touchmove
     if (type === 'mobile') {
       document.addEventListener('touchmove', (e) => {
         if (e.touches.length > 0) {
