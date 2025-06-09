@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Эффект огня от курсора</title>
+<title>Эффектный калькулятор с огнем</title>
 <style>
   body {
     margin: 0;
@@ -11,31 +11,237 @@
     overflow: hidden;
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    cursor: none; /* скрываем курсор для эффекта */
+    cursor: none; /* скрываем курсор для эффекта огня */
+    position: relative;
   }
 
-  /* Контейнер для частиц огня */
+  /* Анимация градиента фона */
+  @keyframes gradientShift {
+    0% {background-position: 0% 50%;}
+    50% {background-position: 100% 50%;}
+    100% {background-position: 0% 50%;}
+  }
+  body {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    background-size: 600% 600%;
+    animation: gradientShift 20s ease infinite;
+  }
+
+  /* Контейнер для падающих символов */
   #fire-particles {
     position: absolute;
     top: 0; left: 0;
     width: 100%; height: 100%;
     pointer-events: none;
-    z-index: 9999;
+    z-index: 0;
+  }
+
+  /* Центрированный калькулятор */
+  .calculator {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 30px;
+    margin: auto;
+    background: rgba(255,255,255,0.1);
+    border-radius: 30px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    backdrop-filter: blur(20px);
+    max-width: 440px;
+    width: 90%;
+    animation: fadeIn 1s ease-out;
+  }
+
+  @keyframes fadeIn {
+    from {opacity: 0; transform: translateY(-20px);}
+    to {opacity: 1; transform: translateY(0);}
+  }
+
+  /* Экран */
+  .display {
+    background: linear-gradient(135deg, #f093fb, #f5576c);
+    padding: 20px;
+    border-radius: 20px;
+    font-size: 2.6em;
+    color: #fff;
+    text-align: right;
+    box-shadow: inset 0 4px 15px rgba(0,0,0,0.2);
+    margin-bottom: 30px;
+    width: 100%;
+    font-family: 'Orbitron', sans-serif;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    overflow-wrap: break-word;
+  }
+
+  /* Кнопки */
+  .buttons {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 15px;
+    width: 100%;
+  }
+
+  .button {
+    padding: 20px;
+    font-size: 1.4em;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    transition: all 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    font-family: 'Arial Rounded MT Bold', sans-serif;
+  }
+
+  /* Эффект при нажатии */
+  .button:active {
+    transform: scale(0.95);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+  }
+
+  /* Специальная кнопка 0 */
+  .span-two {
+    grid-column: span 2;
   }
 </style>
 </head>
 <body>
 
+<!-- Контейнер для падающих символов огня -->
 <div id="fire-particles"></div>
 
-<script>
-  const container = document.getElementById('fire-particles');
+<!-- Центрированный калькулятор -->
+<div class="calculator">
+  <div class="display" id="display">0</div>
+  <div class="buttons">
+    <button class="button" data-action="clear">C</button>
+    <button class="button" data-action="delete">DEL</button>
+    <button class="button" data-action="divide">/</button>
+    <button class="button" data-action="multiply">*</button>
 
-  // Создаем частицы огня
+    <button class="button" data-number="7">7</button>
+    <button class="button" data-number="8">8</button>
+    <button class="button" data-number="9">9</button>
+    <button class="button" data-action="subtract">-</button>
+
+    <button class="button" data-number="4">4</button>
+    <button class="button" data-number="5">5</button>
+    <button class="button" data-number="6">6</button>
+    <button class="button" data-action="add">+</button>
+
+    <button class="button" data-number="1">1</button>
+    <button class="button" data-number="2">2</button>
+    <button class="button" data-number="3">3</button>
+    <button class="button" data-action="equals">=</button>
+
+    <button class="button span-two" data-number="0">0</button>
+    <button class="button" data-number=".">.</button>
+  </div>
+</div>
+
+<script>
+  const display = document.getElementById('display');
+  const buttons = document.querySelectorAll('.button');
+  const particlesContainer = document.getElementById('fire-particles');
+
+  let currentInput = '';
+  let lastOperation = null;
+  let resetNext = false;
+
+  // Обновление дисплея
+  function updateDisplay() {
+    display.textContent = currentInput || '0';
+  }
+
+  // Обработка кликов по кнопкам
+  buttons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const action = e.target.dataset.action;
+      const number = e.target.dataset.number;
+
+      createFireAtCursor(e);
+
+      if (number !== undefined) {
+        if (resetNext) {
+          currentInput = '';
+          resetNext = false;
+        }
+        if (number === '.' && currentInput.includes('.')) return;
+        currentInput += number;
+        updateDisplay();
+      } else if (action) {
+        handleAction(action);
+      }
+    });
+  });
+
+  function handleAction(action) {
+    if (action === 'clear') {
+      currentInput = '';
+      lastOperation = null;
+      updateDisplay();
+    } else if (action === 'delete') {
+      currentInput = currentInput.slice(0, -1);
+      updateDisplay();
+    } else if (['add', 'subtract', 'multiply', 'divide'].includes(action)) {
+      if (currentInput === '' && display.textContent !== '0') {
+        currentInput = display.textContent;
+      }
+      performOperation(action);
+    } else if (action === 'equals') {
+      performOperation(lastOperation, true);
+    }
+  }
+
+  function performOperation(operation, isEqual = false) {
+    if (currentInput === '') return;
+
+    if (lastOperation) {
+      const prev = parseFloat(display.textContent);
+      const current = parseFloat(currentInput);
+      let result = 0;
+      switch (lastOperation) {
+        case 'add': result = prev + current; break;
+        case 'subtract': result = prev - current; break;
+        case 'multiply': result = prev * current; break;
+        case 'divide':
+          if (current === 0) {
+            alert('Ошибка: деление на ноль!');
+            return;
+          }
+          result = prev / current;
+          break;
+      }
+      currentInput = result.toString();
+      display.textContent = currentInput;
+    } else {
+      display.textContent = currentInput;
+    }
+    if (isEqual) {
+      lastOperation = null;
+    } else {
+      lastOperation = operation;
+    }
+    resetNext = true;
+  }
+
+  // Создавать эффект огня (частицы) при движении курсора
+  function createFireAtCursor(e) {
+    const x = e.clientX;
+    const y = e.clientY;
+    for (let i = 0; i < 2; i++) {
+      createFireParticle(x, y);
+    }
+  }
+
   function createFireParticle(x, y) {
-    const size = Math.random() * 8 + 4; // размер частицы
-    const hue = Math.random() * 40 + 20; // цвет огня (от оранжевого к желтому)
-    const glow = Math.random() * 20 + 10; // сияние
+    const size = Math.random() * 8 + 4;
+    const hue = Math.random() * 40 + 20;
+    const glow = Math.random() * 20 + 10;
 
     const particle = document.createElement('div');
     particle.style.position = 'absolute';
@@ -48,26 +254,21 @@
     particle.style.top = y + 'px';
     particle.style.opacity = '1';
 
-    container.appendChild(particle);
+    particlesContainer.appendChild(particle);
 
-    // Анимация движения и исчезания
-    const dx = (Math.random() - 0.5) * 50; // смещение по X
-    const dy = Math.random() * -50 - 20; // смещение по Y (вверх)
-    const duration = Math.random() * 600 + 400; // длительность анимации
+    const dx = (Math.random() - 0.5) * 50;
+    const dy = Math.random() * -50 - 20;
+    const duration = Math.random() * 600 + 400;
+    const rotateDeg = Math.random() * 720;
 
-    // Трансформация
-    const endX = x + dx;
-    const endY = y + dy;
-
-    // Запускаем анимацию
     requestAnimationFrame(() => {
       particle.animate([
         {
-          transform: `translate(0, 0)`,
+          transform: `translate(0, 0) rotate(0deg)`,
           opacity: 1
         },
         {
-          transform: `translate(${endX - x}px, ${endY - y}px)`,
+          transform: `translate(${dx}px, ${dy}px) rotate(${rotateDeg}deg)`,
           opacity: 0
         }
       ], {
@@ -79,13 +280,15 @@
     });
   }
 
-  // Обработчик движения мыши
+  // Обработчик движения мыши для огня
   document.addEventListener('mousemove', (e) => {
-    // Создаем несколько частиц при движении
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       createFireParticle(e.clientX, e.clientY);
     }
   });
+
+  // Изначально обновляем дисплей
+  updateDisplay();
 </script>
 </body>
 </html>
